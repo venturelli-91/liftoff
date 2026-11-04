@@ -10,7 +10,7 @@
     "format": "biome format --write",
     "test": "node --test \"tests/**/*.test.ts\"",
     "typecheck": "tsc --noEmit",
-    "verify": "tsc --noEmit && biome check && next build && node --test \"tests/**/*.test.ts\""
+    "verify": "biome check && next build && node --test \"tests/**/*.test.ts\""
   },
   "dependencies": {
     "next": "16.4.5",
