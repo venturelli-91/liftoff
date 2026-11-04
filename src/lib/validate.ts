@@ -9,6 +9,37 @@ function isDate(v: unknown): v is string {
   return typeof v === "string" && DATE.test(v) && !Number.isNaN(Date.parse(v));
 }
 
+export const BIO_MAX = 2000;
+
+export function validateInstructor(
+  input: unknown,
+):
+  | { ok: true; value: { name: string; email: string; bio: string } }
+  | { ok: false; errors: FieldError[] } {
+  const errors: FieldError[] = [];
+  const o = (input && typeof input === "object" ? input : {}) as Record<
+    string,
+    unknown
+  >;
+  const name = typeof o.name === "string" ? o.name.trim() : "";
+  if (!name || name.length > 200)
+    errors.push({
+      field: "name",
+      message: "must be a non-empty string (max 200)",
+    });
+  const email = typeof o.email === "string" ? o.email.trim() : "";
+  if (!EMAIL.test(email) || email.length > 200)
+    errors.push({ field: "email", message: "must be a valid email" });
+  let bio = "";
+  if (o.bio !== undefined && o.bio !== null) {
+    if (typeof o.bio !== "string" || o.bio.length > BIO_MAX)
+      errors.push({ field: "bio", message: `must be text (max ${BIO_MAX})` });
+    else bio = o.bio.trim();
+  }
+  if (errors.length) return { ok: false, errors };
+  return { ok: true, value: { name, email, bio } };
+}
+
 export function validatePayload(
   input: unknown,
 ): { ok: true; value: CohortPayload } | { ok: false; errors: FieldError[] } {
