@@ -29,7 +29,9 @@ function setup(
 }
 
 const states = (e: Engine, id: number) =>
-  Object.fromEntries(e.getCohort(id)?.steps.map((s) => [s.name, s.state]) ?? []);
+  Object.fromEntries(
+    e.getCohort(id)?.steps.map((s) => [s.name, s.state]) ?? [],
+  );
 
 test("happy path: approval gates email and notice, rest completes", async () => {
   const { adapters, engine } = setup();
@@ -113,9 +115,7 @@ test("exhausted retries escalate; manual retry recovers without duplicates", asy
   await engine.idle();
   assert.strictEqual(states(engine, id).salesforce, "needs_attention");
   assert.strictEqual(engine.getCohort(id)?.status, "needs_attention");
-  assert.ok(
-    engine.getCohort(id)?.events.some((e) => e.type === "escalated"),
-  );
+  assert.ok(engine.getCohort(id)?.events.some((e) => e.type === "escalated"));
   assert.strictEqual(engine.retry(id, "calendar"), false); // only flagged steps
 
   assert.ok(engine.retry(id, "salesforce"));
@@ -143,7 +143,12 @@ test("validation rejects bad payloads with field errors", () => {
   const { engine } = setup();
   const r = handleTrigger(
     engine,
-    { ...payload, seats: 0, startDate: "x", instructor: { name: "", email: "no" } },
+    {
+      ...payload,
+      seats: 0,
+      startDate: "x",
+      instructor: { name: "", email: "no" },
+    },
     null,
   );
   assert.strictEqual(r.status, 422);

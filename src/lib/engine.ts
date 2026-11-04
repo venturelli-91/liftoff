@@ -89,7 +89,12 @@ export class Engine {
     for (const r of rows) this.launch(r.cohort_id, r.name);
   }
 
-  private log(cohortId: number, step: StepName | null, type: string, message: string) {
+  private log(
+    cohortId: number,
+    step: StepName | null,
+    type: string,
+    message: string,
+  ) {
     this.db
       .prepare(
         "INSERT INTO events (cohort_id, step, type, message, at) VALUES (?,?,?,?,?)",
@@ -100,7 +105,12 @@ export class Engine {
   private setStep(
     cohortId: number,
     name: StepName,
-    f: { state: StepState; error?: string | null; attempts?: number; result?: string },
+    f: {
+      state: StepState;
+      error?: string | null;
+      attempts?: number;
+      result?: string;
+    },
   ) {
     this.db
       .prepare(
@@ -124,7 +134,12 @@ export class Engine {
       .prepare("SELECT id FROM cohorts WHERE idempotency_key = ?")
       .get(idempotencyKey) as { id: number } | undefined;
     if (existing) {
-      this.log(existing.id, null, "duplicate_trigger", "Duplicate trigger ignored");
+      this.log(
+        existing.id,
+        null,
+        "duplicate_trigger",
+        "Duplicate trigger ignored",
+      );
       return { id: existing.id, duplicate: true };
     }
     this.db.exec("BEGIN");
@@ -200,9 +215,16 @@ export class Engine {
             ? this.drafter.welcomeEmail(payload)
             : this.drafter.landingNotice(payload);
         this.db
-          .prepare("UPDATE steps SET draft = ? WHERE cohort_id = ? AND name = ?")
+          .prepare(
+            "UPDATE steps SET draft = ? WHERE cohort_id = ? AND name = ?",
+          )
           .run(JSON.stringify(draft), cohortId, name);
-        this.log(cohortId, name, "drafted", "Draft generated, waiting for approval");
+        this.log(
+          cohortId,
+          name,
+          "drafted",
+          "Draft generated, waiting for approval",
+        );
         step = this.getStep(cohortId, name) as StepRow;
       }
       if (!step.approved) {
@@ -215,7 +237,12 @@ export class Engine {
     while (step.attempts < this.maxAttempts) {
       const attempt = step.attempts + 1;
       this.setStep(cohortId, name, { state: "running", attempts: attempt });
-      this.log(cohortId, name, "attempt", `Attempt ${attempt}/${this.maxAttempts}`);
+      this.log(
+        cohortId,
+        name,
+        "attempt",
+        `Attempt ${attempt}/${this.maxAttempts}`,
+      );
       try {
         const result = await this.execute(name, key, payload, step.draft);
         this.setStep(cohortId, name, { state: "completed", result });

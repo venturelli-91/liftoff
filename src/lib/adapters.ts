@@ -96,7 +96,11 @@ export function createMockAdapters(
   return {
     calendar: createMock<CalendarInput>("calendar", config.calendar, shared),
     lms: createMock<LmsInput>("lms", config.lms, shared),
-    marketing: createMock<MarketingInput>("marketing", config.marketing, shared),
+    marketing: createMock<MarketingInput>(
+      "marketing",
+      config.marketing,
+      shared,
+    ),
     salesforce: createMock<SalesforceInput>(
       "salesforce",
       config.salesforce,

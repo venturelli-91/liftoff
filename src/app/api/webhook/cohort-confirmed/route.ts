@@ -18,6 +18,10 @@ export async function POST(request: Request) {
   } catch {
     return Response.json({ error: "invalid JSON" }, { status: 400 });
   }
-  const r = handleTrigger(getEngine(), body, request.headers.get("idempotency-key"));
+  const r = handleTrigger(
+    getEngine(),
+    body,
+    request.headers.get("idempotency-key"),
+  );
   return Response.json(r.body, { status: r.status });
 }
