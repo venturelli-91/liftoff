@@ -26,5 +26,14 @@ npm test
 - 200: `{"status":"ok","db":"ok","uptime_s":<number>}`
 - 503: `{"status":"degraded","db":"error"}` when the query throws.
 
+## Audit
+The `/audit` page lists the audit events of all cohorts in one table, newest first.
+
+`GET /api/audit` returns the same data as JSON, ordered newest first (ties: higher cohort id, then higher event id, first).
+- Query parameters (both optional, exact match; empty or absent means no filter):
+  - `cohort`: only events of the cohort with this name.
+  - `step`: only events of this step.
+- 200: an array of `{"time":<string>,"cohort":<string>,"step":<string|null>,"event":<string>,"detail":<string>}`. `time` is the event timestamp, `event` its type, `detail` its message, `step` is `null` for events not tied to a step. No matches gives `[]`.
+
 ## Security note
 The ops UI and the `/api/cohorts` routes have no authentication and show instructor personal data (name, email). Run Liftoff only on a trusted network or behind an authenticating proxy. The webhook (`/api/webhook/cohort-confirmed`) is protected by a shared secret.
