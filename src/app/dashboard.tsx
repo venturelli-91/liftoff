@@ -51,7 +51,9 @@ export default function Dashboard() {
 
 function TriggerForm({ onDone }: { onDone: () => void }) {
   const [key, setKey] = useState("");
-  const [errors, setErrors] = useState<{ field: string; message: string }[]>([]);
+  const [errors, setErrors] = useState<{ field: string; message: string }[]>(
+    [],
+  );
   const [info, setInfo] = useState("");
   useEffect(() => setKey(crypto.randomUUID()), []);
 
@@ -134,10 +136,23 @@ function CohortCard({
   cohort: CohortView;
   onAction: () => void;
 }) {
+  const [actionError, setActionError] = useState("");
   const act = async (step: string, action: "approve" | "retry") => {
-    await fetch(`/api/cohorts/${cohort.id}/steps/${step}/${action}`, {
-      method: "POST",
-    });
+    setActionError("");
+    try {
+      const res = await fetch(
+        `/api/cohorts/${cohort.id}/steps/${step}/${action}`,
+        {
+          method: "POST",
+        },
+      );
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setActionError(data?.error ?? `${action} failed (${res.status})`);
+      }
+    } catch {
+      setActionError(`${action} failed: network error`);
+    }
     onAction();
   };
   const p = cohort.payload;
@@ -162,6 +177,12 @@ function CohortCard({
           {cohort.status.replace("_", " ")}
         </span>
       </header>
+
+      {actionError && (
+        <p role="alert" className="mb-3 text-sm text-red-700">
+          {actionError}
+        </p>
+      )}
 
       {/* Graph: trigger node fans out to the five parallel steps */}
       <div className="flex flex-col items-stretch gap-3 md:flex-row md:items-center">
