@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import type { CohortView, StepRow, StepState } from "@/lib/types";
 
@@ -36,7 +37,15 @@ export default function Dashboard() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-      <TriggerForm onDone={refresh} />
+      <div className="flex flex-col gap-3">
+        <TriggerForm onDone={refresh} />
+        <Link
+          href="/instructors"
+          className="text-sm font-medium text-zinc-700 underline hover:text-zinc-900"
+        >
+          Instructors
+        </Link>
+      </div>
       <div className="flex flex-col gap-6">
         {cohorts.length === 0 && (
           <p className="text-zinc-500">No cohorts yet. Submit the form.</p>
