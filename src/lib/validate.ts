@@ -6,9 +6,7 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function isDate(v: unknown): v is string {
-  return (
-    typeof v === "string" && DATE.test(v) && !Number.isNaN(Date.parse(v))
-  );
+  return typeof v === "string" && DATE.test(v) && !Number.isNaN(Date.parse(v));
 }
 
 export function validatePayload(
@@ -29,7 +27,8 @@ export function validatePayload(
 
   const cohort = text("cohort", o.cohort);
   let course: string | undefined;
-  if (o.course !== undefined && o.course !== "") course = text("course", o.course);
+  if (o.course !== undefined && o.course !== "")
+    course = text("course", o.course);
   if (!isDate(o.startDate))
     errors.push({ field: "startDate", message: "must be a date YYYY-MM-DD" });
   if (!isDate(o.endDate))
@@ -37,22 +36,31 @@ export function validatePayload(
   if (isDate(o.startDate) && isDate(o.endDate) && o.endDate < o.startDate)
     errors.push({ field: "endDate", message: "must not be before startDate" });
 
-  const ins = (o.instructor && typeof o.instructor === "object"
-    ? o.instructor
-    : {}) as Record<string, unknown>;
+  const ins = (
+    o.instructor && typeof o.instructor === "object" ? o.instructor : {}
+  ) as Record<string, unknown>;
   const name = text("instructor.name", ins.name);
   const email = typeof ins.email === "string" ? ins.email.trim() : "";
   if (!EMAIL.test(email))
-    errors.push({ field: "instructor.email", message: "must be a valid email" });
+    errors.push({
+      field: "instructor.email",
+      message: "must be a valid email",
+    });
 
-  if (!Number.isInteger(o.seats) || (o.seats as number) < 1 || (o.seats as number) > 1000)
+  if (
+    !Number.isInteger(o.seats) ||
+    (o.seats as number) < 1 ||
+    (o.seats as number) > 1000
+  )
     errors.push({ field: "seats", message: "must be an integer 1-1000" });
 
   const materials = Array.isArray(o.materials) ? o.materials : null;
   if (
     !materials ||
     materials.length > 50 ||
-    !materials.every((m) => typeof m === "string" && m.trim() && m.length <= 200)
+    !materials.every(
+      (m) => typeof m === "string" && m.trim() && m.length <= 200,
+    )
   )
     errors.push({
       field: "materials",

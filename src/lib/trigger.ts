@@ -2,7 +2,10 @@ import { timingSafeEqual } from "node:crypto";
 import type { Engine } from "./engine.ts";
 import { validatePayload } from "./validate.ts";
 
-export function secretMatches(given: string | null, expected: string | undefined) {
+export function secretMatches(
+  given: string | null,
+  expected: string | undefined,
+) {
   if (!expected || !given) return false;
   const a = Buffer.from(given);
   const b = Buffer.from(expected);
