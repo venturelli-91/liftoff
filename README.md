@@ -21,5 +21,10 @@ npm test
 2. Webhook: `POST /api/webhook/cohort-confirmed` with header `x-liftoff-secret: s` (optional `Idempotency-Key`) and JSON `{cohort, course?, startDate, endDate, instructor:{name,email}, seats, materials[]}`. Invalid payload: 422 with field errors; repeat key: 200 and no new side effects.
 3. With `LIFTOFF_MOCK_FAILURES=salesforce:99` the step retries with backoff, then shows "needs attention"; use **Retry**. The audit log is under each cohort.
 
+## Health check
+`GET /api/health` runs a trivial query on the sqlite store.
+- 200: `{"status":"ok","db":"ok","uptime_s":<number>}`
+- 503: `{"status":"degraded","db":"error"}` when the query throws.
+
 ## Security note
 The ops UI and the `/api/cohorts` routes have no authentication and show instructor personal data (name, email). Run Liftoff only on a trusted network or behind an authenticating proxy. The webhook (`/api/webhook/cohort-confirmed`) is protected by a shared secret.
