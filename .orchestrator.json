@@ -1,5 +1,6 @@
 {
-  "test": "npm test",
+  "test": "npm run verify",
   "merge": "pr",
-  "publisher": "github"
+  "publisher": "github",
+  "install": true
 }
