@@ -1,8 +1,8 @@
 // Local staging deploy for the orchestrator's `command` target.
 //   node scripts/stage.mjs deploy    -> builds ORCH_SHA from the current checkout and (re)starts it
-//   node scripts/stage.mjs rollback  -> restarts the release of ORCH_PREVIOUS (it must have been deployed here before)
+//   node scripts/stage.mjs rollback  -> restarts the release of ORCH_PREVIOUS, building it from git history if it never ran here
 // Releases live outside the checkout, in ~/.liftoff-stage, so removing the checkout never touches a running release.
-import { execSync, spawn } from "node:child_process";
+import { execFileSync, execSync, spawn } from "node:child_process";
 import {
   cpSync,
   existsSync,
@@ -31,14 +31,22 @@ if (
 const release = join(STAGE, "releases", sha);
 mkdirSync(join(STAGE, "data"), { recursive: true });
 
-if (mode === "deploy" && !existsSync(join(release, ".next"))) {
-  cpSync(process.cwd(), release, {
-    recursive: true,
-    filter: (p) =>
-      !/[\\/](\.git|node_modules|\.next)([\\/]|$)/.test(
-        p.slice(process.cwd().length),
-      ),
-  });
+if (!existsSync(join(release, ".next"))) {
+  if (mode === "deploy") {
+    cpSync(process.cwd(), release, {
+      recursive: true,
+      filter: (p) =>
+        !/[\\/](\.git|node_modules|\.next)([\\/]|$)/.test(
+          p.slice(process.cwd().length),
+        ),
+    });
+  } else {
+    // The previous commit was never deployed here: build it from the main checkout's history.
+    const tar = join(STAGE, `${sha}.tar`);
+    mkdirSync(release, { recursive: true });
+    execFileSync("git", ["archive", "--format=tar", "-o", tar, sha]);
+    execFileSync("tar", ["-xf", tar, "-C", release]);
+  }
   execSync("npm ci --ignore-scripts --no-audit --no-fund", {
     cwd: release,
     stdio: "inherit",
