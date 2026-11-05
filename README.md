@@ -15,6 +15,7 @@ npm test
 - `LIFTOFF_WEBHOOK_SECRET`: required for the webhook (requests rejected if unset).
 - `LIFTOFF_DB`: sqlite path (default `liftoff.db`).
 - `LIFTOFF_MOCK_FAILURES`: e.g. `calendar:2,salesforce:99` makes the first N calls of a mock fail.
+- `LIFTOFF_SHA`: optional commit id reported as `sha` by `GET /api/health`.
 
 ## Try it
 1. `LIFTOFF_WEBHOOK_SECRET=s npm run dev`, open http://localhost:3000, submit the form. Calendar, LMS and Salesforce complete; the email and landing notice wait for **Approve**.
@@ -23,8 +24,9 @@ npm test
 
 ## Health check
 `GET /api/health` runs a trivial query on the sqlite store.
-- 200: `{"status":"ok","db":"ok","uptime_s":<number>}`
-- 503: `{"status":"degraded","db":"error"}` when the query throws.
+- 200: `{"status":"ok","db":"ok","uptime_s":<number>,"sha":<string|null>}`
+- 503: `{"status":"degraded","db":"error","sha":<string|null>}` when the query throws.
+- `sha` is the value of the `LIFTOFF_SHA` env var (the deployed commit), or `null` when unset.
 
 ## Audit
 The `/audit` page lists the audit events of all cohorts in one table, newest first.
