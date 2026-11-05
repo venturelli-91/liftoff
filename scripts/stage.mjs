@@ -45,7 +45,10 @@ if (!existsSync(join(release, ".next"))) {
     const tar = join(STAGE, `${sha}.tar`);
     mkdirSync(release, { recursive: true });
     execFileSync("git", ["archive", "--format=tar", "-o", tar, sha]);
-    execFileSync("tar", ["-xf", tar, "-C", release]);
+    // relative paths: GNU tar reads "C:\..." as a remote host
+    execFileSync("tar", ["-xf", `${sha}.tar`, "-C", `releases/${sha}`], {
+      cwd: STAGE,
+    });
   }
   execSync("npm ci --ignore-scripts --no-audit --no-fund", {
     cwd: release,
