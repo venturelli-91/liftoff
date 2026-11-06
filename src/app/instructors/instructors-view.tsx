@@ -2,6 +2,7 @@
 
 import { type FormEvent, useCallback, useEffect, useState } from "react";
 import type { Instructor } from "@/lib/instructors";
+import { BTN_PRIMARY, CARD, INPUT, TD, TH } from "../ui";
 
 type FieldError = { field: string; message: string };
 
@@ -45,79 +46,69 @@ export default function InstructorsView() {
     else setMessage(data.error ?? "Could not save instructor");
   }
 
-  const input =
-    "rounded border border-zinc-300 bg-white px-2 py-1 text-sm text-zinc-900";
   const err = (f: string) => errors.find((x) => x.field === f)?.message ?? null;
 
   return (
     <div className="flex flex-col gap-6">
-      <form
-        onSubmit={submit}
-        className="flex flex-col gap-3 rounded-lg border border-zinc-200 bg-white p-4"
-      >
-        <h2 className="font-medium">New instructor</h2>
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <label className="flex flex-1 flex-col gap-1 text-sm">
+      <form onSubmit={submit} className={`${CARD} flex flex-col gap-4 p-5`}>
+        <h2 className="text-base font-medium">New instructor</h2>
+        <div className="flex flex-col gap-4 sm:flex-row">
+          <label className="flex flex-1 flex-col gap-2 text-[13px] text-fg-2">
             Name
             <input
-              className={input}
+              className={INPUT}
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
-            {err("name") && <span className="text-red-600">{err("name")}</span>}
+            {err("name") && <span className="text-neg">{err("name")}</span>}
           </label>
-          <label className="flex flex-1 flex-col gap-1 text-sm">
+          <label className="flex flex-1 flex-col gap-2 text-[13px] text-fg-2">
             Email
             <input
-              className={input}
+              className={INPUT}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-            {err("email") && (
-              <span className="text-red-600">{err("email")}</span>
-            )}
+            {err("email") && <span className="text-neg">{err("email")}</span>}
           </label>
         </div>
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex flex-col gap-2 text-[13px] text-fg-2">
           Bio (optional)
           <textarea
-            className={input}
+            className={`${INPUT} h-auto py-2`}
             rows={3}
             value={bio}
             onChange={(e) => setBio(e.target.value)}
           />
-          {err("bio") && <span className="text-red-600">{err("bio")}</span>}
+          {err("bio") && <span className="text-neg">{err("bio")}</span>}
         </label>
-        {message && <p className="text-sm text-red-600">{message}</p>}
-        <button
-          type="submit"
-          className="self-start rounded bg-zinc-900 px-3 py-1 text-sm text-white"
-        >
+        {message && <p className="text-[13px] text-neg">{message}</p>}
+        <button type="submit" className={`${BTN_PRIMARY} self-start`}>
           Create
         </button>
       </form>
-      <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-zinc-50 text-zinc-600">
+      <div className={`${CARD} overflow-x-auto`}>
+        <table className="w-full text-left">
+          <thead>
             <tr>
-              <th className="px-3 py-2">Name</th>
-              <th className="px-3 py-2">Email</th>
-              <th className="px-3 py-2">Bio</th>
+              <th className={TH}>Name</th>
+              <th className={TH}>Email</th>
+              <th className={TH}>Bio</th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 && (
               <tr>
-                <td colSpan={3} className="px-3 py-4 text-zinc-500">
-                  No instructors yet.
+                <td colSpan={3} className={`${TD} text-fg-3`}>
+                  No instructors yet
                 </td>
               </tr>
             )}
             {rows.map((r) => (
-              <tr key={r.id} className="border-t border-zinc-100">
-                <td className="px-3 py-2">{r.name}</td>
-                <td className="px-3 py-2">{r.email}</td>
-                <td className="px-3 py-2">{r.bio}</td>
+              <tr key={r.id} className="border-t border-line">
+                <td className={TD}>{r.name}</td>
+                <td className={TD}>{r.email}</td>
+                <td className={TD}>{r.bio}</td>
               </tr>
             ))}
           </tbody>

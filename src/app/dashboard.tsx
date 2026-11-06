@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import type { CohortView, StepRow, StepState } from "@/lib/types";
+import { BTN_PRIMARY, BTN_SECONDARY, INPUT } from "./ui";
 
 const LABELS: Record<string, string> = {
   calendar: "Calendar event",
@@ -12,14 +12,34 @@ const LABELS: Record<string, string> = {
   email: "Welcome email",
 };
 
-const COLORS: Record<StepState, string> = {
-  pending: "border-zinc-300 bg-zinc-50 text-zinc-700",
-  running: "border-blue-400 bg-blue-50 text-blue-800",
-  retrying: "border-amber-400 bg-amber-50 text-amber-800",
-  awaiting_approval: "border-violet-400 bg-violet-50 text-violet-800",
-  completed: "border-emerald-400 bg-emerald-50 text-emerald-800",
-  needs_attention: "border-red-500 bg-red-50 text-red-800",
+const DOT: Record<StepState, string> = {
+  pending: "ring-1 ring-fg-3",
+  running: "bg-fg motion-safe:animate-pulse",
+  retrying: "bg-fg motion-safe:animate-pulse",
+  awaiting_approval: "bg-accent",
+  completed: "bg-pos",
+  needs_attention: "bg-neg",
 };
+
+const EDGE: Record<StepState, string> = {
+  pending: "bg-line",
+  running: "bg-line",
+  retrying: "bg-line",
+  awaiting_approval: "bg-accent",
+  completed: "bg-pos",
+  needs_attention: "bg-neg",
+};
+
+const label = (s: string) => s.replace(/_/g, " ");
+
+function Dot({ state }: { state: StepState }) {
+  return (
+    <span
+      aria-hidden
+      className={`size-2 shrink-0 rounded-full ${DOT[state]}`}
+    />
+  );
+}
 
 export default function Dashboard() {
   const [cohorts, setCohorts] = useState<CohortView[]>([]);
@@ -36,20 +56,10 @@ export default function Dashboard() {
   }, [refresh]);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-      <div className="flex flex-col gap-3">
-        <TriggerForm onDone={refresh} />
-        <Link
-          href="/instructors"
-          className="text-sm font-medium text-zinc-700 underline hover:text-zinc-900"
-        >
-          Instructors
-        </Link>
-      </div>
+    <div className="grid items-start gap-8 lg:grid-cols-[320px_1fr]">
+      <TriggerForm onDone={refresh} />
       <div className="flex flex-col gap-6">
-        {cohorts.length === 0 && (
-          <p className="text-zinc-500">No cohorts yet. Submit the form.</p>
-        )}
+        {cohorts.length === 0 && <p className="text-fg-3">No cohorts yet</p>}
         {cohorts.map((c) => (
           <CohortCard key={c.id} cohort={c} onAction={refresh} />
         ))}
@@ -97,19 +107,18 @@ function TriggerForm({ onDone }: { onDone: () => void }) {
     } else setInfo("");
   }
 
-  const input = "w-full rounded border border-zinc-300 px-2 py-1.5 text-sm";
-  const field = (label: string, name: string, extra = {}) => (
-    <label className="flex flex-col gap-1 text-sm font-medium">
-      {label}
-      <input name={name} className={input} {...extra} />
+  const field = (text: string, name: string, extra = {}) => (
+    <label className="flex flex-col gap-2 text-[13px] text-fg-2">
+      {text}
+      <input name={name} className={INPUT} {...extra} />
     </label>
   );
   return (
     <form
       onSubmit={submit}
-      className="flex h-fit flex-col gap-3 rounded-lg border border-zinc-200 p-4"
+      className="flex flex-col gap-4 rounded-xl border border-line bg-card p-5"
     >
-      <h2 className="font-semibold">Confirm a cohort</h2>
+      <h2 className="text-base font-medium">Confirm a cohort</h2>
       {field("Cohort", "cohort")}
       {field("Course (optional)", "course")}
       {field("Start date", "startDate", { type: "date" })}
@@ -119,7 +128,7 @@ function TriggerForm({ onDone }: { onDone: () => void }) {
       {field("Seats", "seats", { type: "number", min: 1 })}
       {field("Materials (comma separated)", "materials")}
       {errors.length > 0 && (
-        <ul className="text-sm text-red-700" role="alert">
+        <ul className="text-[13px] text-neg" role="alert">
           {errors.map((er) => (
             <li key={er.field}>
               {er.field}: {er.message}
@@ -127,11 +136,8 @@ function TriggerForm({ onDone }: { onDone: () => void }) {
           ))}
         </ul>
       )}
-      {info && <p className="text-sm text-emerald-700">{info}</p>}
-      <button
-        type="submit"
-        className="rounded bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-700"
-      >
+      {info && <p className="text-[13px] text-fg-2">{info}</p>}
+      <button type="submit" className={BTN_PRIMARY}>
         Start onboarding
       </button>
     </form>
@@ -166,51 +172,53 @@ function CohortCard({
   };
   const p = cohort.payload;
   return (
-    <section className="rounded-lg border border-zinc-200 p-4">
-      <header className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+    <section className="rise rounded-xl border border-line bg-card p-6">
+      <header className="mb-6 flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h2 className="font-semibold">{p.cohort}</h2>
-          <p className="text-sm text-zinc-500">
-            {p.startDate} → {p.endDate} · {p.seats} seats · {p.instructor.name}
+          <h2 className="text-base font-medium">{p.cohort}</h2>
+          <p className="text-[13px] text-fg-3">
+            <span className="font-mono tabular-nums">
+              {p.startDate} → {p.endDate}
+            </span>{" "}
+            · {p.seats} seats · {p.instructor.name}
           </p>
         </div>
-        <span
-          className={`rounded border px-2 py-0.5 text-xs font-medium ${
-            cohort.status === "needs_attention"
-              ? COLORS.needs_attention
-              : cohort.status === "completed"
-                ? COLORS.completed
-                : COLORS.running
-          }`}
-        >
-          {cohort.status.replace("_", " ")}
+        <span className="flex items-center gap-2 text-[13px] text-fg-2">
+          <Dot state={cohort.status} />
+          {label(cohort.status)}
         </span>
       </header>
 
       {actionError && (
-        <p role="alert" className="mb-3 text-sm text-red-700">
+        <p role="alert" className="mb-4 text-[13px] text-neg">
           {actionError}
         </p>
       )}
 
       {/* Graph: trigger node fans out to the five parallel steps */}
-      <div className="flex flex-col items-stretch gap-3 md:flex-row md:items-center">
-        <div className="rounded border border-zinc-400 bg-zinc-100 px-3 py-2 text-center text-sm font-medium">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-0">
+        <div className="rounded-lg border border-line bg-raised px-4 py-3 font-medium md:w-40 md:shrink-0">
           Cohort confirmed
         </div>
-        <div className="hidden h-px w-6 bg-zinc-400 md:block" aria-hidden />
-        <ul className="grid flex-1 gap-2 border-zinc-400 sm:grid-cols-2 md:border-l md:pl-3 xl:grid-cols-3">
-          {cohort.steps.map((s) => (
-            <StepNode key={s.name} step={s} act={act} />
+        <div className="hidden h-px w-6 bg-line md:block" aria-hidden />
+        <ul className="flex flex-1 flex-col gap-2 md:pl-6">
+          {cohort.steps.map((s, i) => (
+            <StepNode
+              key={s.name}
+              step={s}
+              act={act}
+              first={i <= (cohort.steps.length - 1) / 2}
+              last={i >= (cohort.steps.length - 1) / 2}
+            />
           ))}
         </ul>
       </div>
 
-      <details className="mt-4">
-        <summary className="cursor-pointer text-sm font-medium">
+      <details className="mt-6">
+        <summary className="cursor-pointer text-[13px] text-fg-2 transition-colors hover:text-fg">
           Audit log ({cohort.events.length})
         </summary>
-        <ol className="mt-2 max-h-64 overflow-auto font-mono text-xs">
+        <ol className="mt-3 font-mono text-xs leading-5 text-fg-3">
           {cohort.events.map((e) => (
             <li key={e.id}>
               {e.at.slice(11, 23)} {e.step ?? "cohort"} [{e.type}] {e.message}
@@ -225,44 +233,67 @@ function CohortCard({
 function StepNode({
   step,
   act,
+  first,
+  last,
 }: {
   step: StepRow;
   act: (step: string, action: "approve" | "retry") => void;
+  first: boolean;
+  last: boolean;
 }) {
+  const edge = EDGE[step.state];
   return (
-    <li className={`rounded border p-2 text-sm ${COLORS[step.state]}`}>
-      <div className="font-medium">{LABELS[step.name]}</div>
-      <div className="text-xs">
-        {step.state.replace("_", " ")}
-        {step.attempts > 0 && ` · attempt ${step.attempts}`}
+    <li className="relative rounded-lg border border-line bg-raised px-3 py-2">
+      <span
+        aria-hidden
+        className={`absolute top-[18px] -left-6 hidden h-px w-6 md:block ${edge}`}
+      />
+      {first && (
+        <span
+          aria-hidden
+          className={`absolute top-[18px] -bottom-2 -left-6 hidden w-px md:block ${edge}`}
+        />
+      )}
+      {last && (
+        <span
+          aria-hidden
+          className={`absolute -top-2 -left-6 hidden h-[26px] w-px md:block ${edge}`}
+        />
+      )}
+      <div className="flex items-center gap-2">
+        <Dot state={step.state} />
+        <span className="font-medium">{LABELS[step.name]}</span>
+        <span className="ml-auto font-mono text-xs text-fg-3">
+          {label(step.state)}
+          {step.attempts > 0 && ` · attempt ${step.attempts}`}
+        </span>
       </div>
       {step.error && step.state !== "completed" && (
-        <div className="mt-1 text-xs">{step.error}</div>
+        <p className="mt-2 text-[13px] text-neg">{step.error}</p>
       )}
       {step.state === "awaiting_approval" && step.draft && (
-        <div className="mt-2">
-          <p className="text-xs font-semibold">{step.draft.subject}</p>
-          <pre className="whitespace-pre-wrap text-xs">{step.draft.body}</pre>
+        <div className="mt-3 flex flex-col gap-2">
+          <p className="text-[13px] font-medium">{step.draft.subject}</p>
+          <pre className="font-sans text-[13px] leading-5 whitespace-pre-wrap text-fg-2">
+            {step.draft.body}
+          </pre>
           <button
             type="button"
             onClick={() => act(step.name, "approve")}
-            className="mt-2 rounded bg-violet-700 px-2 py-1 text-xs text-white"
+            className={`${BTN_PRIMARY} self-start`}
           >
             Approve
           </button>
         </div>
       )}
       {step.state === "needs_attention" && (
-        <>
-          <p className="mt-1 text-xs font-bold">⚠ Needs attention</p>
-          <button
-            type="button"
-            onClick={() => act(step.name, "retry")}
-            className="mt-1 rounded bg-red-700 px-2 py-1 text-xs text-white"
-          >
-            Retry
-          </button>
-        </>
+        <button
+          type="button"
+          onClick={() => act(step.name, "retry")}
+          className={`${BTN_SECONDARY} mt-3`}
+        >
+          Retry
+        </button>
       )}
     </li>
   );
