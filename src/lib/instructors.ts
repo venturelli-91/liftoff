@@ -55,20 +55,6 @@ export class InstructorStore {
     }
   }
 
-  /** Returns undefined when the id does not exist. */
-  update(id: number, input: InstructorInput): Instructor | undefined {
-    try {
-      const r = this.db
-        .prepare(
-          "UPDATE instructors SET name = ?, email = ?, bio = ? WHERE id = ?",
-        )
-        .run(input.name, input.email, input.bio ?? "", id);
-      return r.changes ? this.get(id) : undefined;
-    } catch (e) {
-      throw this.translate(e, input.email);
-    }
-  }
-
   private translate(e: unknown, email: string): unknown {
     return e instanceof Error && /UNIQUE/i.test(e.message)
       ? new DuplicateEmailError(email)

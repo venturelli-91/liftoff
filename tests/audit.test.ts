@@ -15,12 +15,10 @@ const mk = (cohort: string) => ({
 });
 
 async function seed() {
-  const engine = new Engine(
-    createMockAdapters({}, { inFlight: 0, peak: 0 }),
-    templateDrafter,
-    ":memory:",
-    { maxAttempts: 3, backoffMs: 1 },
-  );
+  const engine = new Engine(createMockAdapters(), templateDrafter, ":memory:", {
+    maxAttempts: 3,
+    backoffMs: 1,
+  });
   engine.trigger(mk("Python Spring"), "a");
   engine.trigger(mk("Go Summer"), "b");
   await engine.idle();

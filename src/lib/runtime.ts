@@ -1,6 +1,7 @@
 import { createMockAdapters, parseFailureEnv } from "./adapters.ts";
 import { templateDrafter } from "./drafter.ts";
 import { Engine } from "./engine.ts";
+import { STEP_NAMES } from "./types.ts";
 
 const g = globalThis as unknown as { __liftoffEngine?: Engine };
 
@@ -12,14 +13,9 @@ const g = globalThis as unknown as { __liftoffEngine?: Engine };
 export function getEngine(): Engine {
   if (!g.__liftoffEngine) {
     const failures = parseFailureEnv(process.env.LIFTOFF_MOCK_FAILURES);
-    const delays = { delayMs: 300 };
-    const config = {
-      calendar: { ...delays, ...failures.calendar },
-      lms: { ...delays, ...failures.lms },
-      marketing: { ...delays, ...failures.marketing },
-      salesforce: { ...delays, ...failures.salesforce },
-      email: { ...delays, ...failures.email },
-    };
+    const config = Object.fromEntries(
+      STEP_NAMES.map((n) => [n, { delayMs: 300, ...failures[n] }]),
+    );
     g.__liftoffEngine = new Engine(
       createMockAdapters(config),
       templateDrafter,
