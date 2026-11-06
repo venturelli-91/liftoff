@@ -11,6 +11,21 @@ function isDate(v: unknown): v is string {
 
 export const BIO_MAX = 2000;
 
+function text(errors: FieldError[], field: string, v: unknown) {
+  if (typeof v !== "string" || !v.trim() || v.length > 200) {
+    errors.push({ field, message: "must be a non-empty string (max 200)" });
+    return "";
+  }
+  return v.trim();
+}
+
+function email(errors: FieldError[], field: string, v: unknown) {
+  const e = typeof v === "string" ? v.trim() : "";
+  if (!EMAIL.test(e) || e.length > 200)
+    errors.push({ field, message: "must be a valid email" });
+  return e;
+}
+
 export function validateInstructor(
   input: unknown,
 ):
@@ -21,15 +36,8 @@ export function validateInstructor(
     string,
     unknown
   >;
-  const name = typeof o.name === "string" ? o.name.trim() : "";
-  if (!name || name.length > 200)
-    errors.push({
-      field: "name",
-      message: "must be a non-empty string (max 200)",
-    });
-  const email = typeof o.email === "string" ? o.email.trim() : "";
-  if (!EMAIL.test(email) || email.length > 200)
-    errors.push({ field: "email", message: "must be a valid email" });
+  const name = text(errors, "name", o.name);
+  const mail = email(errors, "email", o.email);
   let bio = "";
   if (o.bio !== undefined && o.bio !== null) {
     if (typeof o.bio !== "string" || o.bio.length > BIO_MAX)
@@ -37,7 +45,7 @@ export function validateInstructor(
     else bio = o.bio.trim();
   }
   if (errors.length) return { ok: false, errors };
-  return { ok: true, value: { name, email, bio } };
+  return { ok: true, value: { name, email: mail, bio } };
 }
 
 export function validatePayload(
@@ -48,18 +56,10 @@ export function validatePayload(
     string,
     unknown
   >;
-  const text = (field: string, v: unknown) => {
-    if (typeof v !== "string" || !v.trim() || v.length > 200) {
-      errors.push({ field, message: "must be a non-empty string (max 200)" });
-      return "";
-    }
-    return v.trim();
-  };
-
-  const cohort = text("cohort", o.cohort);
+  const cohort = text(errors, "cohort", o.cohort);
   let course: string | undefined;
   if (o.course !== undefined && o.course !== "")
-    course = text("course", o.course);
+    course = text(errors, "course", o.course);
   if (!isDate(o.startDate))
     errors.push({ field: "startDate", message: "must be a date YYYY-MM-DD" });
   if (!isDate(o.endDate))
@@ -70,13 +70,8 @@ export function validatePayload(
   const ins = (
     o.instructor && typeof o.instructor === "object" ? o.instructor : {}
   ) as Record<string, unknown>;
-  const name = text("instructor.name", ins.name);
-  const email = typeof ins.email === "string" ? ins.email.trim() : "";
-  if (!EMAIL.test(email))
-    errors.push({
-      field: "instructor.email",
-      message: "must be a valid email",
-    });
+  const name = text(errors, "instructor.name", ins.name);
+  const mail = email(errors, "instructor.email", ins.email);
 
   if (
     !Number.isInteger(o.seats) ||
@@ -106,7 +101,7 @@ export function validatePayload(
       course,
       startDate: o.startDate as string,
       endDate: o.endDate as string,
-      instructor: { name, email },
+      instructor: { name, email: mail },
       seats: o.seats as number,
       materials: (materials as string[]).map((m) => m.trim()),
     },
