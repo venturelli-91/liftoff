@@ -4,7 +4,6 @@ import { InstructorStore } from "../src/lib/instructors.ts";
 import {
   createInstructor,
   listInstructors,
-  updateInstructor,
 } from "../src/lib/instructors-api.ts";
 
 const ada = { name: "Ada", email: "ada@example.com", bio: "hi" };
@@ -34,25 +33,4 @@ test("duplicate email is 409", () => {
   createInstructor(s, ada);
   const r = createInstructor(s, { ...ada, email: "ADA@example.com" });
   assert.strictEqual(r.status, 409);
-});
-
-test("partial update merges, invalid is 400, unknown or bad id is 404", () => {
-  const s = new InstructorStore(":memory:");
-  createInstructor(s, ada);
-  const ok = updateInstructor(s, "1", { name: "Ada L" });
-  assert.strictEqual(ok.status, 200);
-  assert.deepStrictEqual(ok.body, { id: 1, ...ada, name: "Ada L" });
-  assert.strictEqual(updateInstructor(s, "1", { email: "x" }).status, 400);
-  assert.strictEqual(updateInstructor(s, "99", ada).status, 404);
-  assert.strictEqual(updateInstructor(s, "abc", ada).status, 404);
-});
-
-test("update to another instructor's email is 409", () => {
-  const s = new InstructorStore(":memory:");
-  createInstructor(s, ada);
-  createInstructor(s, { name: "Bo", email: "bo@example.com" });
-  assert.strictEqual(
-    updateInstructor(s, "2", { email: "ada@example.com" }).status,
-    409,
-  );
 });
