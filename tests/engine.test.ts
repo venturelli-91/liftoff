@@ -5,6 +5,7 @@ import { templateDrafter } from "../src/lib/drafter.ts";
 import { Engine } from "../src/lib/engine.ts";
 import { handleTrigger, secretMatches } from "../src/lib/trigger.ts";
 import type { StepName } from "../src/lib/types.ts";
+import { lostResponse, probe } from "./helpers.ts";
 
 const payload = {
   cohort: "Python Spring",
@@ -16,11 +17,23 @@ const payload = {
 };
 
 function setup(
-  config: Partial<Record<StepName, FailureConfig>> = {},
+  config: Partial<
+    Record<StepName, FailureConfig & { failAfterEffect?: boolean }>
+  > = {},
   maxAttempts = 3,
 ) {
   const shared = { inFlight: 0, peak: 0 };
-  const adapters = createMockAdapters(config, shared);
+  const plain = Object.fromEntries(
+    Object.entries(config).map(([n, c]) => [
+      n,
+      c.failAfterEffect ? { delayMs: c.delayMs } : c,
+    ]),
+  );
+  const adapters = createMockAdapters(plain);
+  for (const [n, c] of Object.entries(config))
+    if (c.failAfterEffect)
+      lostResponse(adapters[n as StepName], c.failTimes ?? 0);
+  probe(Object.values(adapters), shared);
   const engine = new Engine(adapters, templateDrafter, ":memory:", {
     maxAttempts,
     backoffMs: 1,
