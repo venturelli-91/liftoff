@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { isAuthorized } from "../src/lib/ops-auth.ts";
+import { challenge, isAuthorized } from "../src/lib/ops-auth.ts";
 
 const basic = (user: string, pass: string) =>
   `Basic ${Buffer.from(`${user}:${pass}`).toString("base64")}`;
@@ -37,13 +37,24 @@ test("malformed headers return false without throwing", () => {
   }
 });
 
+test("challenge returns 401 with WWW-Authenticate Basic, null when allowed", () => {
+  const r = challenge(null, "s3cret");
+  assert.strictEqual(r?.status, 401);
+  assert.match(r?.headers.get("www-authenticate") ?? "", /^Basic /);
+  assert.strictEqual(challenge(basic("x", "bad"), "s3cret")?.status, 401);
+  assert.strictEqual(challenge(basic("x", "s3cret"), "s3cret"), null);
+  assert.strictEqual(challenge(null, undefined), null);
+});
+
 test("matcher never covers /api/health or /api/webhook, covers protected routes", () => {
   // proxy.ts imports next/server (not resolvable under plain node), so read the matcher from source
   const src = readFileSync("src/proxy.ts", "utf8");
   const block = /matcher:\s*\[([^\]]*)\]/.exec(src)?.[1] ?? "";
   const matcher = [...block.matchAll(/"([^"]+)"/g)].map((m) => m[1]);
-  assert.ok(matcher.length >= 7);
-  const res = matcher.map((m) => new RegExp(`^${m.replace(/:path\*/, ".*")}$`));
+  assert.ok(matcher.length >= 6);
+  const res = matcher.map(
+    (m) => new RegExp(`^${m.replace("/:path*", "(?:/.*)?")}$`),
+  );
   const hit = (p: string) => res.some((r) => r.test(p));
   assert.strictEqual(hit("/api/health"), false);
   assert.strictEqual(hit("/api/webhook/cohort-confirmed"), false);
