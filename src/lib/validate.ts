@@ -92,6 +92,14 @@ export function validatePayload(
       field: "materials",
       message: "must be a list of non-empty strings (max 50)",
     });
+  else {
+    const norm = (materials as string[]).map((m) => m.trim().toLowerCase());
+    if (new Set(norm).size !== norm.length)
+      errors.push({
+        field: "materials",
+        message: "must not contain duplicates",
+      });
+  }
 
   if (errors.length) return { ok: false, errors };
   return {
