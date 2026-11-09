@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { AuditEntry } from "@/lib/audit";
+import { CARD, INPUT, TD, TH } from "../ui";
 
 const STEPS = ["calendar", "lms", "marketing", "salesforce", "email"];
 
@@ -24,21 +25,18 @@ export default function AuditTable() {
     return () => clearInterval(t);
   }, [refresh]);
 
-  const input =
-    "rounded border border-zinc-300 bg-white px-2 py-1 text-sm text-zinc-900";
-
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <div className="flex flex-wrap gap-3">
         <input
-          className={input}
+          className={`${INPUT} sm:w-56`}
           placeholder="Cohort"
           aria-label="Cohort"
           value={cohort}
           onChange={(e) => setCohort(e.target.value)}
         />
         <select
-          className={input}
+          className={`${INPUT} sm:w-56`}
           aria-label="Step"
           value={step}
           onChange={(e) => setStep(e.target.value)}
@@ -51,22 +49,22 @@ export default function AuditTable() {
           ))}
         </select>
       </div>
-      <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-zinc-50 text-zinc-600">
+      <div className={`${CARD} overflow-x-auto`}>
+        <table className="w-full text-left">
+          <thead>
             <tr>
-              <th className="px-3 py-2">Time</th>
-              <th className="px-3 py-2">Cohort</th>
-              <th className="px-3 py-2">Step</th>
-              <th className="px-3 py-2">Event</th>
-              <th className="px-3 py-2">Detail</th>
+              <th className={TH}>Time</th>
+              <th className={TH}>Cohort</th>
+              <th className={TH}>Step</th>
+              <th className={TH}>Event</th>
+              <th className={TH}>Detail</th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-3 py-4 text-zinc-500">
-                  No audit entries.
+                <td colSpan={5} className={`${TD} text-fg-3`}>
+                  No audit entries
                 </td>
               </tr>
             )}
@@ -74,13 +72,17 @@ export default function AuditTable() {
               <tr
                 // biome-ignore lint/suspicious/noArrayIndexKey: rows have no unique id in the API
                 key={i}
-                className="border-t border-zinc-100"
+                className="border-t border-line"
               >
-                <td className="whitespace-nowrap px-3 py-2">{r.time}</td>
-                <td className="px-3 py-2">{r.cohort}</td>
-                <td className="px-3 py-2">{r.step ?? "-"}</td>
-                <td className="px-3 py-2">{r.event}</td>
-                <td className="px-3 py-2">{r.detail}</td>
+                <td
+                  className={`${TD} whitespace-nowrap font-mono text-xs text-fg-3 tabular-nums`}
+                >
+                  {r.time}
+                </td>
+                <td className={TD}>{r.cohort}</td>
+                <td className={TD}>{r.step ?? "-"}</td>
+                <td className={TD}>{r.event}</td>
+                <td className={TD}>{r.detail}</td>
               </tr>
             ))}
           </tbody>

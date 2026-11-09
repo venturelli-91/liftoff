@@ -3,11 +3,8 @@ import { getEngine } from "@/lib/runtime";
 
 export async function GET(request: Request) {
   void request.url; // opt into dynamic rendering
-  const r = checkHealth({
-    sha: process.env.LIFTOFF_SHA ?? null,
-    checkDb: () => {
-      getEngine().db.prepare("SELECT 1").get();
-    },
+  const r = checkHealth(() => {
+    getEngine().db.prepare("SELECT 1").get();
   });
   return Response.json(r.body, { status: r.status });
 }
