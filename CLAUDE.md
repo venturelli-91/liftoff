@@ -10,3 +10,4 @@ Graph-based cohort launch automation. When an instructor is confirmed, one event
 - UI: Tailwind 4, readable and responsive. The main screen shows each cohort as a graph with the live state of every step.
 - Lint and format with Biome (`npm run lint`). Tests: `npm test` (`node --test`, TypeScript runs natively on Node 24). Commits in English: `type: imperative description`.
 - Keep it small: no abstraction the task does not need.
+- `LIFTOFF_OPS_PASSWORD` (optional): when set and non-empty, `src/proxy.ts` requires HTTP Basic auth (any username, this password, constant-time compare) on `/`, `/audit`, `/instructors`, `/api/cohorts/**`, `/api/instructors`, `/api/audit`; otherwise 401 with `WWW-Authenticate: Basic`. Unset/empty means no auth. `/api/health` and `/api/webhook/**` are never challenged (not in the matcher). Set it in the environment, never commit it.
